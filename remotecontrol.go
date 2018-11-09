@@ -18,7 +18,7 @@ var (
 	ErrNotCaptured = fmt.Errorf("signal not captured") // Remote controller signal not captured (yet)
 )
 
-// Enter a IR or RF remote controller learning mode.
+// Set the device to enter IR/RF remote controller signal capture mode.
 func (d *Device) StartCaptureRemoteControlCode() (err error) {
 
 	packet := make([]byte, 0x10)
@@ -36,7 +36,7 @@ func (d *Device) StartCaptureRemoteControlCode() (err error) {
 	return
 }
 
-// Read captured remote control code.
+// Read captured remote control code. The device must be in signal capture mode to capture a signal. If no signal is captured, this function returns err = ErrNotCaptured. if err is nil, rtype and code will have captured data.
 func (d *Device) ReadCapturedRemoteControlCode() (rtype RemoteType, code []byte, err error) {
 
 	packet := make([]byte, 0x10)
@@ -117,7 +117,7 @@ func (d *Device) SendRemoteControlCode(rtype RemoteType, code []byte, count int)
 	return
 }
 
-// Send out a IR remote code.
+// Send out a IR remote code. Same function with calling SendRemoteControlCode() with rtype=REMOTE_IR.
 func (d *Device) SendIRRemoteCode(code []byte, count int) (err error) {
 	return d.SendRemoteControlCode(REMOTE_IR, code, count)
 }

@@ -18,29 +18,30 @@ var (
 	regularPacketHeader = []byte{0x5a, 0xa5, 0xaa, 0x55, 0x5a, 0xa5, 0xaa, 0x55}
 )
 
-// A Broadlink Device.
+// A Broadlink Device. Information in this structure may updated by device discovery and authorization functions.
+// After a device is successfully discovered and authorized, it is safe to store and reuse informations somewhere for later use. Just be sure to store AES encryption key alongside using GetAESKey() and SetAESKey().
 type Device struct {
 	Type uint16 // Type code of the device
 
 	MACAddr []byte      // MAC address of the device
 	UDPAddr net.UDPAddr // IP address of the device
 
-	LocalAddr  net.UDPAddr   // Local machine's IP address and port
-	NetTimeout time.Duration // timeout for a command call
+	LocalAddr net.UDPAddr   // Local machine's IP address and port
+	Timeout   time.Duration // timeout for a command call
 
-	ID     uint32 // Local machine's ID returned on Auth command
-	AESKey []byte // Key for data encryption
+	ID uint32 // Local machine's ID returned on Auth command
 
 	counter uint16 // packet counter
 
+	aesKey   []byte // Key for data encryption
 	aesIV    []byte // IV for data encryption
 	aesBlock cipher.Block
 }
 
 // get timeout duration
 func (d *Device) timeout() time.Duration {
-	if d.NetTimeout > 0 {
-		return d.NetTimeout
+	if d.Timeout > 0 {
+		return d.Timeout
 	}
 	return defaultTimeout
 }
@@ -138,7 +139,7 @@ func (d *Device) Call(cmd byte, payload []byte) (result []byte, err error) {
 	return
 }
 
-// Send a command to device. Do not wait for response
+// Send a command to device but not waits for response.
 func (d *Device) Cmd(cmd byte, payload []byte) (result []byte, err error) {
 
 	if d.MACAddr == nil || len(d.MACAddr) != 6 {
@@ -175,9 +176,9 @@ func (d *Device) Cmd(cmd byte, payload []byte) (result []byte, err error) {
 
 // Authorize local machine to remote device.
 // localID uniquely identifies local machine to the device.
-// The BroadLink device may remember the localID and returns same ID and AESKey.
+// The BroadLink device may remember the localID and returns same ID and AES encryption key.
 // localName is a human-readable name.
-// When succeed, d.ID and d.AESKey will be updated.
+// When succeed, d.ID and d's AES key will be updated.
 func (d *Device) Auth(localID []byte, localName string) (err error) {
 
 	if len(localID) != 15 {

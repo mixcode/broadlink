@@ -21,24 +21,29 @@ myname := "my test server"  // Your local machine's name.
 myid := make([]byte, 15)    // Must be 15 bytes long.
 // Fill myid[] with some unique ID for your local machine.
 
-err = d.Auth(myid, myname) // Get my ID and update AES key.
+err = d.Auth(myid, myname) // d.ID and d.AESKey will be updated on success.
 ```
 
 #### Capture an IR Remote code
 ```golang
+var rtype RemoteType
 var ircode []byte
 
 // Enter capturing mode.
 err = d.StartCaptureRemoteControlCode()
 
-// Poll captured data.
-// Point a remote controller toward the device, and press a button.
+// Point a remote controller toward the device and press a button to have some signal.
+
+// Poll captured data. (Certainly you can do much better than this ;p)
 ok := false
 for i:=0; i<30; i++ {
-	ircode, err = d.ReadCapturedRemoteControlCode()
-	if err==nil {
+	remotetype, ircode, err = d.ReadCapturedRemoteControlCode()
+	if err == nil {
 		ok = true
 		break
+	}
+	if err != ErrNotCaptured {
+		return err // real error
 	}
 	time.Sleep(time.Second)
 	continue

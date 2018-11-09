@@ -24,11 +24,11 @@ const (
 
 var (
 	// Port number of broadlink device
-	BroadlinkDevicePort = 80
+	BroadLinkDevicePort = 80
 )
 
 // Searches for BroadLink devices can be reached from given localaddr.
-// The function always wait for listentime if no error occurs.
+// The function always waits listentime if no error occurs.
 // When localaddr.Port is 0, a random port will be used.
 func DiscoverDevicesFromAddr(listentime time.Duration, localaddr *net.UDPAddr) (devlist []Device, err error) {
 
@@ -87,7 +87,7 @@ func DiscoverDevicesFromAddr(listentime time.Duration, localaddr *net.UDPAddr) (
 	if err != nil {
 		return
 	}
-	broadcastAddr := &net.UDPAddr{IP: net.IPv4bcast, Port: BroadlinkDevicePort}
+	broadcastAddr := &net.UDPAddr{IP: net.IPv4bcast, Port: BroadLinkDevicePort}
 	_, err = udpconn.WriteTo(packet, broadcastAddr)
 	if err != nil {
 		return
@@ -163,13 +163,13 @@ func DiscoverDevicesFromAddr(listentime time.Duration, localaddr *net.UDPAddr) (
 	return
 }
 
-// Try to discover all BroadLink devices reachable.
-// The function waits for timeout for reply.
-// listenport is UDP port number to be listened. if listenport is zero, a port number will be chosen automatically. Be sure the port is opened.
-func DiscoverDevices(timeout time.Duration, listenUDPPort int) (devlist []Device, err error) {
+// Try to discover all reachable BroadLink devices.
+// The function waits listentime for reply from devices.
+// listenport is a UDP port number to be listened on. If listenport is zero, a port number will be chosen automatically. Be sure the port is not blocked by firewalls.
+func DiscoverDevices(listentime time.Duration, listenUDPPort int) (devlist []Device, err error) {
 
-	if timeout <= 0 {
-		err = fmt.Errorf("a positive timeout duration must be given")
+	if listentime <= 0 {
+		err = fmt.Errorf("a positive listentime duration must be given")
 		return
 	}
 	// list up local IPv4 addresses
@@ -203,7 +203,7 @@ func DiscoverDevices(timeout time.Duration, listenUDPPort int) (devlist []Device
 			defer wg.Done()
 
 			laddr := &net.UDPAddr{IP: ip, Port: listenUDPPort}
-			found, e := DiscoverDevicesFromAddr(timeout, laddr)
+			found, e := DiscoverDevicesFromAddr(listentime, laddr)
 			if e != nil {
 				err = e
 				return
@@ -253,7 +253,7 @@ func SetupDeviceWifi(ssid, password string, security WifiSecurity, localaddr *ne
 			err = e
 		}
 	}()
-	broadcastAddr := &net.UDPAddr{IP: net.IPv4bcast, Port: BroadlinkDevicePort}
+	broadcastAddr := &net.UDPAddr{IP: net.IPv4bcast, Port: BroadLinkDevicePort}
 	_, err = udpconn.WriteTo(packet, broadcastAddr)
 	if err != nil {
 		return
